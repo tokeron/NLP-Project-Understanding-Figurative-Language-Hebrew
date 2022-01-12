@@ -1,0 +1,6 @@
+SQLAlchemy
+transformers
+datasets
+pandas
+PyTorch
+# From conda clean: conda install -c huggingface transformers

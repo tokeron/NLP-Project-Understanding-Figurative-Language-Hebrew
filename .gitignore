@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+*.xml
+*.iml
+*.json
+*.bin
+config.yaml
+data/catmaviz.db
+*.db
+*.csv
+requirements
+requirements
