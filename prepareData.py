@@ -29,7 +29,7 @@ def generate_data():
     """
     # Get data from csv
     tags, annotations, texts = get_data()
-    bad_data_list = [52341, 52586]
+    bad_data_list = [52341, 52586] # , 52705, 52946, 53307, 53499
     annotations.drop(annotations[annotations.id.isin(bad_data_list)].index, inplace=True)
     # Get only relevant annotations
     fl_annotations = annotations.loc[(
@@ -63,8 +63,16 @@ def generate_data():
             i = i - 1
             end_offset = end_offset - 1
 
+        # Check if start_offset is in the middle of a word
+        while start_offset > 0 and fulltext[start_offset - 1] not in space_list:
+            start_offset = start_offset - 1
+
+        # Check if end_offset is in the middle of a word
+        while end_offset < len(fulltext) and fulltext[end_offset] not in space_list:
+            end_offset = end_offset + 1
+
         remaining_metaphor_len = end_offset - start_offset
-        word_index = len(fulltext[:start_offset].split()) - 1
+        word_index = len(fulltext[:start_offset].split())
         number_of_words_in_phrase = 0
         next_word_start_index = start_offset
 
@@ -72,18 +80,18 @@ def generate_data():
         while remaining_metaphor_len > 0:
             remaining_text = fulltext[next_word_start_index:]  # Get the remaining text
             word_len = len(remaining_text.split()[0])  # Get the length of the next word
-            remaining_metaphor_len = remaining_metaphor_len - word_len - 1
+            remaining_metaphor_len = remaining_metaphor_len - word_len - 1  # -1 for the space
             if number_of_words_in_phrase == 0:  # If it's the first word in the phrase
                 texts.loc[texts.id == text_id, "tags"].to_numpy()[0][word_index] = label_names["B-metaphor"]
             else:  # If it's not the first word in the phrase
                 texts.loc[texts.id == text_id, "tags"].to_numpy()[0][word_index] = label_names["I-metaphor"]
             word_index = word_index + 1
-            next_word_start_index = next_word_start_index + word_len + 1
-            number_of_words_in_phrase = number_of_words_in_phrase + 1
+            next_word_start_index = next_word_start_index + word_len + 1  # +1 for the space
+            number_of_words_in_phrase = number_of_words_in_phrase + 1  # +1 for the word
     return texts
 
 
-def split_by_rows(texts):
+def split_by_rows(texts, split_by="\r\n"):
     """
     # Function that splits the data by rows
     :param texts: Dataframe with columns: data: list of words, tags: list of labels
@@ -96,7 +104,7 @@ def split_by_rows(texts):
     for index, text in texts.iterrows():
         start_index = 0
         fulltext = text.fulltext
-        fulltext_split_by_rows = fulltext.split('\r\n')
+        fulltext_split_by_rows = fulltext.split(split_by)
         for row in fulltext_split_by_rows:
             number_of_words_in_row = len(row.split())
             if number_of_words_in_row == 0:
@@ -116,6 +124,16 @@ if __name__ == "__main__":
 
     # Split the data by rows
     texts_rows = split_by_rows(texts)
+
+    # Split the data by rows
+    texts_paragraphs = split_by_rows(texts, split_by="\t\t\t")
+
+    # Save the dataframe to a json file
+    train_paragraphs, test_paragraphs = train_test_split(texts_rows, test_size=0.2)
+    train_paragraphs, validation_paragraphs = train_test_split(train_paragraphs, test_size=0.2)
+    train_paragraphs.to_json("data/train_paragraphs.json")
+    test_paragraphs.to_json("data/test_paragraphs.json")
+    validation_paragraphs.to_json("data/validation_paragraphs.json")
 
     # Save the dataframe to a json file
     train_rows, test_rows = train_test_split(texts_rows, test_size=0.2)

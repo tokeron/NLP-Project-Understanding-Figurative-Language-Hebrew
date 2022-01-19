@@ -17,10 +17,15 @@ if __name__ == "__main__":
     # Load dataset
     # ToDo: create a dataset class that contains train and test data.
     #  This way we can use the same code for both train and test
-    from datasets import load_dataset
 
-    raw_datasets = load_dataset("json", data_files="data/train_rows.json", field="data")
-    raw_datasets = load_dataset("hebrew-metaphors-dataset")
+    train = pd.read_json('data/train_rows.json')
+    test = pd.read_json('data/test_rows.json')
+    validation = pd.read_json('data/validation_rows.json')
+
+    train_dataset = FLDataset.FLDataset(train)
+
+    # raw_datasets = load_dataset("json", data_files="data/train_rows.json", field="data")
+    # raw_datasets = load_dataset("hebrew-metaphors-dataset")
 
     # Label names for the dataset labels
     label_names = ["O", "B-metaphor", "I-metaphor"]

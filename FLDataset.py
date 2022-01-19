@@ -13,7 +13,7 @@ class FLDataset(Dataset):
         self.data = data
 
     def __getitem__(self, idx):
-        item = (self.data.at(idx, 'tokenized'), self.data.at(idx, 'FL'))
+        item = (self.data.at(idx, 'data'), self.data.at(idx, 'tags'))
         return item
 
     def __len__(self):
