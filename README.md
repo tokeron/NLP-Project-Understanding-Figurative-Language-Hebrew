@@ -11,9 +11,10 @@ Examples:
 ![alt text](./DataExploration/Example_1.png)
 
 We split the data into rows (So we can insert the entire example into AlephBERT while fine-tuning)
+![alt text](./DataExploration/ExamppleSplit_2.png)
 
 We can see from the graph bellow that most of the rows has at least one metaphore.
-![alt text](./DataExploration/metaphorsCount.png)
+![alt text](./DataExploration/metaphorCount.png)
 
 We can see from the graph bellow that the data is imbalanced.
 ![alt text](./DataExploration/LabelDistribution.png)
