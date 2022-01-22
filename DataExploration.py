@@ -10,16 +10,13 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 label_names = {"O": 0, "B-metaphor": 1, "I-metaphor": 2}
 
-raw_datasets = load_dataset('MetaphorDataset.py')
-train = raw_datasets['train']
-test = raw_datasets['test']
-validation = raw_datasets['validation']
+dataset = load_dataset('MetaphorDataset.py', split='all')
 
 # Calculate statistics
 label_hist = np.zeros([3])
 word_dict = {}
 examples_with_metaphor = np.zeros([3])
-for example in train:
+for example in dataset:
     bool_metaphor = np.zeros([3])
     words = example['data']
     labels = example['labels']
@@ -54,7 +51,7 @@ plt.bar(range(3), examples_with_metaphor, align='center')
 # show numbers on the bars
 for i in range(3):
     plt.text(i, examples_with_metaphor[i], str(examples_with_metaphor[i]))
-plt.xticks(range(3), ['No metaphor', 'B', 'I'])
+plt.xticks(range(3), ['O', 'B', 'I'])
 plt.xlabel('Label')
 plt.ylabel('Number of examples')
 plt.title('Number of examples with / without at least one label')
@@ -105,9 +102,9 @@ plt.show()
 # Print 20 examples with its labels
 doc = docx.Document()
 doc.add_heading('Words with metaphors highlighted', 0)
-random_indices = np.random.choice(range(len(train)), 20, replace=False)
+random_indices = np.random.choice(range(len(dataset)), 20, replace=False)
 for index in random_indices:
-    example = train[int(index)]
+    example = dataset[int(index)]
     words = example['data']
     labels = example['labels']
     para = doc.add_paragraph('Example: ' + str(index) + '\n')

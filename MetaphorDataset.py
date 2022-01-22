@@ -74,7 +74,7 @@ class MetaphorDataset(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train_rows.json"),
+                    "filepath": os.path.join(data_dir, "train_full.json"),
                     "split": "train",
                 },
             ),
@@ -82,7 +82,7 @@ class MetaphorDataset(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test_rows.json"),
+                    "filepath": os.path.join(data_dir, "test_full.json"),
                     "split": "test"
                 },
             ),
@@ -90,7 +90,7 @@ class MetaphorDataset(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "validation_rows.json"),
+                    "filepath": os.path.join(data_dir, "validation_full.json"),
                     "split": "validation",
                 },
             ),

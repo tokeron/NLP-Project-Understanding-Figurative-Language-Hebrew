@@ -9,6 +9,10 @@ from transformers import DataCollatorForTokenClassification
 import numpy as np
 from metric import compute_metrics
 
+# Flag that controls the subtoken labeling
+# If True, the model ignores the predictions on the subtokens
+ignore_subtokens = False
+
 #  Define model name - alephbert
 model_checkpoint = 'onlplab/alephbert-base'
 
@@ -49,9 +53,12 @@ def align_labels_with_tokens(labels, word_ids):
         else:
             # Same word as previous token
             label = labels[word_id]
-            # If the label is B-XXX we change it to I-XXX
+            # If the label is B-XXX we change it to I-XXX or -100 (depending on the flag ignore_subtokens)
             if label % 2 == 1:
-                label += 1
+                if ignore_subtokens:
+                    label = -100
+                else:
+                    label += 1
             new_labels.append(label)
 
     return new_labels

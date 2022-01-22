@@ -8,9 +8,9 @@ label_names = {"O": 0, "B-metaphor": 1, "I-metaphor": 2}
 
 # Load data from csv
 def get_data():
-    texts = pd.read_csv("data/texts_1.csv")
-    annotations = pd.read_csv("data/annotations_1.csv")
-    labels = pd.read_csv("data/tags_1.csv")
+    texts = pd.read_csv("data/texts.csv")
+    annotations = pd.read_csv("data/annotations.csv")
+    labels = pd.read_csv("data/tags.csv")
     return labels, annotations, texts
 
 
@@ -148,3 +148,6 @@ if __name__ == "__main__":
     train.to_json("data/train_full.json")
     test.to_json("data/test_full.json")
     validation.to_json("data/validation_full.json")
+
+    # Save the dataframe to a json file
+    texts.to_json("data/all_data.json")
