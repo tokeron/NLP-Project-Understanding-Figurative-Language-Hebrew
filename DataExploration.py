@@ -15,9 +15,9 @@ dataset = load_dataset('MetaphorDataset.py', split='all')
 # Calculate statistics
 label_hist = np.zeros([3])
 word_dict = {}
-examples_with_metaphor = np.zeros([3])
+examples_with_metaphor = np.zeros([2])
 for example in dataset:
-    bool_metaphor = np.zeros([3])
+    bool_metaphor = False
     words = example['data']
     labels = example['labels']
     for label, word in zip(labels, words):
@@ -27,9 +27,12 @@ for example in dataset:
         else:
             word_dict[word][label] += 1
         label_hist[label] += 1
-        bool_metaphor[label] = True
-    for index, is_label in enumerate(bool_metaphor):
-        examples_with_metaphor[index] += int(is_label)
+        if label > 0:
+            bool_metaphor = True
+    if bool_metaphor:
+        examples_with_metaphor[0] += 1
+    else:
+        examples_with_metaphor[1] += 1
 
 
 # Plot statistics
@@ -47,14 +50,14 @@ plt.show()
 
 # Number of examples with at least one metaphor
 plt.figure(figsize=(10,5))
-plt.bar(range(3), examples_with_metaphor, align='center')
+plt.bar(range(2), examples_with_metaphor, align='center')
 # show numbers on the bars
-for i in range(3):
+for i in range(2):
     plt.text(i, examples_with_metaphor[i], str(examples_with_metaphor[i]))
-plt.xticks(range(3), ['O', 'B', 'I'])
+plt.xticks(range(2), ['Without metaphor', 'With metaphor'])
 plt.xlabel('Label')
 plt.ylabel('Number of examples')
-plt.title('Number of examples with / without at least one label')
+plt.title('Number of examples with at least one label')
 plt.show()
 
 # create a dataframe from the dictionary
