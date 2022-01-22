@@ -137,3 +137,6 @@ data/catmaviz.db
 *.csv
 requirements
 requirements
+data/Prev/test.pickle
+*.pkl
+*.pickle
