@@ -7,9 +7,4 @@ Data:
 
 Data exploration:
 Examples:
-![plot](./DataExploration/Example_1.png)
-
-
-
-
-
+![alt text](./DataExploration/Example_1.png)
