@@ -10,8 +10,8 @@ label_names = {"O": 0, "B-metaphor": 1, "I-metaphor": 2}
 def get_data():
     texts = pd.read_csv("data/texts_1.csv")
     annotations = pd.read_csv("data/annotations_1.csv")
-    tags = pd.read_csv("data/tags_1.csv")
-    return tags, annotations, texts
+    labels = pd.read_csv("data/tags_1.csv")
+    return labels, annotations, texts
 
 
 # Word length starting from start_offset in text
@@ -25,10 +25,10 @@ def generate_data():
     """
     # Function that generates the data for the model
     :return:
-    Dataframe with columns: data: list of words, tags: list of labels
+    Dataframe with columns: data: list of words, labels: list of labels
     """
     # Get data from csv
-    tags, annotations, texts = get_data()
+    labels, annotations, texts = get_data()
     bad_data_list = [52341, 52586] # , 52705, 52946, 53307, 53499
     annotations.drop(annotations[annotations.id.isin(bad_data_list)].index, inplace=True)
     # Get only relevant annotations
@@ -36,17 +36,17 @@ def generate_data():
                 annotations.path.str.contains('כינוי ציורי', regex=False) |
                 annotations.path.str.contains('מטפוריקה', regex=False))]
 
-    # Add columns for tags and text split into words
+    # Add columns for labels and text split into words
     last_col_num = len(texts.columns)
-    texts.insert(last_col_num, "tags", "")
+    texts.insert(last_col_num, "labels", "")
     texts.insert(last_col_num + 1, "data", "")
-    texts.tags = texts.tags.astype(object)
+    texts.labels = texts.labels.astype(object)
     texts.data = texts.data.astype(object)
     for index, text in texts.iterrows():
         fulltext = texts.at[index, "fulltext"]
         fulltext_split = fulltext.split()
         texts.at[index, "data"] = fulltext_split
-        texts.at[index, "tags"] = np.zeros([len(fulltext_split)])
+        texts.at[index, "labels"] = np.zeros([len(fulltext_split)])
 
     # For each annotation, add the tag
     for index, annotation in fl_annotations.iterrows():
@@ -76,15 +76,15 @@ def generate_data():
         number_of_words_in_phrase = 0
         next_word_start_index = start_offset
 
-        # Iterate over the words in the phrase (annotation) and add the tags
+        # Iterate over the words in the phrase (annotation) and add the labels
         while remaining_metaphor_len > 0:
             remaining_text = fulltext[next_word_start_index:]  # Get the remaining text
             word_len = len(remaining_text.split()[0])  # Get the length of the next word
             remaining_metaphor_len = remaining_metaphor_len - word_len - 1  # -1 for the space
             if number_of_words_in_phrase == 0:  # If it's the first word in the phrase
-                texts.loc[texts.id == text_id, "tags"].to_numpy()[0][word_index] = label_names["B-metaphor"]
+                texts.loc[texts.id == text_id, "labels"].to_numpy()[0][word_index] = label_names["B-metaphor"]
             else:  # If it's not the first word in the phrase
-                texts.loc[texts.id == text_id, "tags"].to_numpy()[0][word_index] = label_names["I-metaphor"]
+                texts.loc[texts.id == text_id, "labels"].to_numpy()[0][word_index] = label_names["I-metaphor"]
             word_index = word_index + 1
             next_word_start_index = next_word_start_index + word_len + 1  # +1 for the space
             number_of_words_in_phrase = number_of_words_in_phrase + 1  # +1 for the word
@@ -94,11 +94,11 @@ def generate_data():
 def split_by_rows(texts, split_by="\r\n"):
     """
     # Function that splits the data by rows
-    :param texts: Dataframe with columns: data: list of words, tags: list of labels
+    :param texts: Dataframe with columns: data: list of words, labels: list of labels
     :return:
     texts_rows: Dataframe with columns:
                     data: list of words (corresponding to rows in the original text),
-                    tags: list of labels
+                    labels: list of labels
     """
     texts_rows = pd.DataFrame(columns=texts.columns[1:])
     for index, text in texts.iterrows():
@@ -110,7 +110,7 @@ def split_by_rows(texts, split_by="\r\n"):
             if number_of_words_in_row == 0:
                 continue
             next_free = texts_rows.shape[0]
-            texts_rows.loc[next_free] = [text.tags[start_index:start_index+number_of_words_in_row], text.data[start_index:start_index+number_of_words_in_row]]
+            texts_rows.loc[next_free] = [text.labels[start_index:start_index+number_of_words_in_row], text.data[start_index:start_index+number_of_words_in_row]]
             start_index = start_index + number_of_words_in_row
     return texts_rows
 

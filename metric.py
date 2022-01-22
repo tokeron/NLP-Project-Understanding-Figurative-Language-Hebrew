@@ -1,8 +1,12 @@
 import numpy as np
+from datasets import load_metric
+
+label_names = ["O", "B-metaphor", "I-metaphor"]
 
 
 # This function computes the overall score for a batch of predictions and labels
 def compute_metrics(eval_preds):
+    metric = load_metric("seqeval")
     logits, labels = eval_preds
     predictions = np.argmax(logits, axis=-1)
 
