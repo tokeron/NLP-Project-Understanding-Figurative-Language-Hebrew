@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from box import Box
+import yaml
 
 # Labels
 label_names = {"O": 0, "B-metaphor": 1, "I-metaphor": 2}
@@ -27,9 +29,13 @@ def generate_data():
     :return:
     Dataframe with columns: data: list of words, labels: list of labels
     """
+    # Load training args from config.yaml file
+    with open('config.yaml') as f:
+        training_args = Box(yaml.load(f, Loader=yaml.FullLoader))
+
     # Get data from csv
     labels, annotations, texts = get_data()
-    bad_data_list = [52341, 52586] # , 52705, 52946, 53307, 53499
+    bad_data_list = [52341, 52586]
     annotations.drop(annotations[annotations.id.isin(bad_data_list)].index, inplace=True)
     # Get only relevant annotations
     fl_annotations = annotations.loc[(
@@ -91,28 +97,42 @@ def generate_data():
     return texts
 
 
-def split_by_rows(texts, split_by="\r\n"):
+def split_by(texts, split_by="\r\n"):
     """
     # Function that splits the data by rows
     :param texts: Dataframe with columns: data: list of words, labels: list of labels
     :return:
-    texts_rows: Dataframe with columns:
+    texts_parts: Dataframe with columns:
                     data: list of words (corresponding to rows in the original text),
                     labels: list of labels
     """
-    texts_rows = pd.DataFrame(columns=texts.columns[1:])
+    # Load training args from config.yaml file
+    with open('config.yaml') as f:
+        training_args = Box(yaml.load(f, Loader=yaml.FullLoader))
+
+    texts_parts = pd.DataFrame(columns=texts.columns[1:])
+    max_number_of_tokens = training_args.data_args.max_number_of_tokens
     for index, text in texts.iterrows():
         start_index = 0
         fulltext = text.fulltext
-        fulltext_split_by_rows = fulltext.split(split_by)
-        for row in fulltext_split_by_rows:
-            number_of_words_in_row = len(row.split())
-            if number_of_words_in_row == 0:
+        fulltext_split = fulltext.split(split_by)
+        for part in fulltext_split:
+            number_of_words_in_part = len(part.split())
+            if number_of_words_in_part == 0:
                 continue
-            next_free = texts_rows.shape[0]
-            texts_rows.loc[next_free] = [text.labels[start_index:start_index+number_of_words_in_row], text.data[start_index:start_index+number_of_words_in_row]]
-            start_index = start_index + number_of_words_in_row
-    return texts_rows
+            while number_of_words_in_part > max_number_of_tokens:
+                next_free = texts_parts.shape[0]  # Get the next free index
+                texts_parts.loc[next_free] = [text.labels[start_index:start_index + max_number_of_tokens],
+                                              text.data[start_index:start_index + max_number_of_tokens]]
+                start_index = start_index + max_number_of_tokens
+                # Update the part to be the remaining part
+                part = " ".join(part.split()[max_number_of_tokens:])
+                number_of_words_in_part = len(part.split())
+            next_free = texts_parts.shape[0]
+            texts_parts.loc[next_free] = [text.labels[start_index:start_index+number_of_words_in_part],
+                                          text.data[start_index:start_index+number_of_words_in_part]]
+            start_index = start_index + number_of_words_in_part
+    return texts_parts
 
 
 if __name__ == "__main__":
@@ -123,13 +143,13 @@ if __name__ == "__main__":
     texts = texts.drop(columns=['id', 'name', 'user_id', 'corpus_id', 'genre_id', 'length'])
 
     # Split the data by rows
-    texts_rows = split_by_rows(texts)
+    texts_rows = split_by(texts)
 
     # Split the data by rows
-    texts_paragraphs = split_by_rows(texts, split_by="\t\t\t")
+    texts_paragraphs = split_by(texts, split_by="\t\t\t")
 
     # Save the dataframe to a json file
-    train_paragraphs, test_paragraphs = train_test_split(texts_rows, test_size=0.2)
+    train_paragraphs, test_paragraphs = train_test_split(texts_paragraphs, test_size=0.2)
     train_paragraphs, validation_paragraphs = train_test_split(train_paragraphs, test_size=0.2)
     train_paragraphs.to_json("data/train_paragraphs.json")
     test_paragraphs.to_json("data/test_paragraphs.json")
